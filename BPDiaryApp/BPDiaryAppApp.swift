@@ -1,11 +1,5 @@
-//
-//  BPDiaryAppApp.swift
-//  BPDiaryApp
-//
-//  Created by Nagina Yulia on 20.04.2026.
-//
-
 import SwiftUI
+import SwiftData
 
 @main
 struct BPDiaryAppApp: App {
@@ -13,5 +7,6 @@ struct BPDiaryAppApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: DailyBPEntry.self)
     }
 }
