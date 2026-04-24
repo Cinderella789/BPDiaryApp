@@ -136,20 +136,11 @@ struct SummaryView: View {
 
     private var headerBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Аналитика за период")
-                .font(.caption)
-                .foregroundStyle(textSecondary)
-
             Text("Сводка давления")
                 .font(.system(size: 37, weight: .heavy))
                 .foregroundStyle(textPrimary)
                 .tracking(-0.8)
                 .fixedSize(horizontal: false, vertical: true)
-
-            Text("Средние значения, статус по зонам, динамика и краткий вывод по последним 28 дням.")
-                .font(.subheadline)
-                .foregroundStyle(textSecondary)
-                .lineSpacing(2)
         }
         .padding(.top, 6)
     }
@@ -158,10 +149,6 @@ struct SummaryView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Период наблюдения")
-                        .font(.caption)
-                        .foregroundStyle(textSecondary)
-
                     Text("Последние 28 дней")
                         .font(.system(size: 24, weight: .heavy))
                         .foregroundStyle(textPrimary)

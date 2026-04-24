@@ -20,23 +20,39 @@ struct BPChartView: View {
     }
 
     private var chartData: [ChartPoint] {
-        recentEntries.compactMap { entry in
-            guard let avg = BPAnalyzer.dayAverage(for: entry) else { return nil }
-            return ChartPoint(date: entry.date, systolic: avg.systolic, diastolic: avg.diastolic)
+        recentEntries.flatMap { entry -> [ChartPoint] in
+            var points: [ChartPoint] = []
+            let sys = entry.morningSystolic ?? entry.eveningSystolic
+            let dia = entry.morningDiastolic ?? entry.eveningDiastolic
+            if let s = sys { points.append(ChartPoint(date: entry.date, value: s, series: "SYS")) }
+            if let d = dia { points.append(ChartPoint(date: entry.date, value: d, series: "DIA")) }
+            return points
         }
     }
 
     private var avgSystolic: Int {
-        Int(BPAnalyzer.averageSystolic(entries: recentEntries).rounded())
+        let vals = chartData.filter { $0.series == "SYS" }.map { $0.value }
+        guard !vals.isEmpty else { return 0 }
+        return Int((Double(vals.reduce(0,+)) / Double(vals.count)).rounded())
     }
 
     private var avgDiastolic: Int {
-        Int(BPAnalyzer.averageDiastolic(entries: recentEntries).rounded())
+        let vals = chartData.filter { $0.series == "DIA" }.map { $0.value }
+        guard !vals.isEmpty else { return 0 }
+        return Int((Double(vals.reduce(0,+)) / Double(vals.count)).rounded())
     }
 
     private var highDays: Int {
-        chartData.filter { $0.systolic >= 140 || $0.diastolic >= 90 }.count
+        let sysByDate = Dictionary(grouping: chartData.filter { $0.series == "SYS" }, by: { $0.date })
+        let diaByDate = Dictionary(grouping: chartData.filter { $0.series == "DIA" }, by: { $0.date })
+        let dates = Set(sysByDate.keys).union(diaByDate.keys)
+        return dates.filter { date in
+            let sys = sysByDate[date]?.first?.value ?? 0
+            let dia = diaByDate[date]?.first?.value ?? 0
+            return sys >= 140 || dia >= 90
+        }.count
     }
+
 
     var body: some View {
         NavigationStack {
@@ -61,22 +77,11 @@ struct BPChartView: View {
     }
 
     private var headerBlock: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Последние 28 дней")
-                .font(.caption)
-                .foregroundStyle(textSecondary)
-
-            Text("График")
-                .font(.system(size: 37, weight: .heavy))
-                .foregroundStyle(textPrimary)
-                .tracking(-0.8)
-
-            Text("Динамика среднего систолического и диастолического давления с ориентацией на целевые значения 130 / 80.")
-                .font(.subheadline)
-                .foregroundStyle(textSecondary)
-                .lineSpacing(2)
-        }
-        .padding(.top, 6)
+        Text("График")
+            .font(.system(size: 37, weight: .heavy))
+            .foregroundStyle(textPrimary)
+            .tracking(-0.8)
+            .padding(.top, 6)
     }
 
     private var chartCard: some View {
@@ -89,51 +94,52 @@ struct BPChartView: View {
                 legend
             }
 
-            Chart {
-                ForEach(chartData) { point in
-                    LineMark(
-                        x: .value("Дата", point.date),
-                        y: .value("SYS", point.systolic)
-                    )
-                    .foregroundStyle(teal)
-                    .interpolationMethod(.catmullRom)
-                    .lineStyle(StrokeStyle(lineWidth: 3))
+            if chartData.isEmpty {
+                Text("Нет данных для графика")
+                    .font(.subheadline)
+                    .foregroundStyle(textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .frame(height: 260)
+            } else {
+                Chart {
+                    ForEach(chartData) { point in
+                        LineMark(
+                            x: .value("Дата", point.date),
+                            y: .value("Давление", point.value)
+                        )
+                        .foregroundStyle(point.series == "SYS" ? teal : red)
+                        .interpolationMethod(.catmullRom)
+                        .lineStyle(StrokeStyle(lineWidth: 3))
+                        .symbol(.circle)
+                    }
 
-                    LineMark(
-                        x: .value("Дата", point.date),
-                        y: .value("DIA", point.diastolic)
-                    )
-                    .foregroundStyle(red)
-                    .interpolationMethod(.catmullRom)
-                    .lineStyle(StrokeStyle(lineWidth: 3))
+                    RuleMark(y: .value("Target SYS", 130))
+                        .foregroundStyle(teal.opacity(0.35))
+                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
+
+                    RuleMark(y: .value("Target DIA", 80))
+                        .foregroundStyle(red.opacity(0.35))
+                        .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
                 }
-
-                RuleMark(y: .value("Target SYS", 130))
-                    .foregroundStyle(teal.opacity(0.35))
-                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
-
-                RuleMark(y: .value("Target DIA", 80))
-                    .foregroundStyle(red.opacity(0.35))
-                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [6, 6]))
-            }
-            .frame(height: 260)
-            .chartYScale(domain: 50...190)
-            .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 6)) { value in
-                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                        .foregroundStyle(line)
-                    AxisValueLabel(format: .dateTime.day().month(.defaultDigits), centered: true)
-                        .foregroundStyle(textSecondary)
-                        .font(.caption2)
+                .frame(height: 260)
+                .chartYScale(domain: 50...190)
+                .chartXAxis {
+                    AxisMarks(values: .automatic(desiredCount: 6)) { _ in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(line)
+                        AxisValueLabel(format: .dateTime.day().month(.defaultDigits), centered: true)
+                            .foregroundStyle(textSecondary)
+                            .font(.caption2)
+                    }
                 }
-            }
-            .chartYAxis {
-                AxisMarks(position: .leading) { value in
-                    AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
-                        .foregroundStyle(line)
-                    AxisValueLabel()
-                        .foregroundStyle(textSecondary)
-                        .font(.caption2)
+                .chartYAxis {
+                    AxisMarks(position: .leading) { _ in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5))
+                            .foregroundStyle(line)
+                        AxisValueLabel()
+                            .foregroundStyle(textSecondary)
+                            .font(.caption2)
+                    }
                 }
             }
         }
@@ -167,20 +173,12 @@ struct BPChartView: View {
     }
 
     private var analysisCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack {
-                Text("Краткий анализ")
-                    .font(.system(size: 19, weight: .heavy))
-                    .foregroundStyle(textPrimary)
-                Spacer()
-                capsule(statusText, color: statusColor)
-            }
-
-            VStack(spacing: 10) {
-                analysisRow(title: "Целевой уровень", value: avgSystolic < 130 && avgDiastolic < 80 ? "Ниже цели" : "Выше цели")
-                analysisRow(title: "Текущий фокус", value: highDays >= 5 ? "Есть серия высоких дней" : "Динамика спокойнее")
-                analysisRow(title: "Наблюдение", value: chartData.isEmpty ? "Недостаточно данных" : "Ориентир — последние 28 дней")
-            }
+        HStack {
+            Text("Краткий анализ")
+                .font(.system(size: 19, weight: .heavy))
+                .foregroundStyle(textPrimary)
+            Spacer()
+            capsule(statusText, color: statusColor)
         }
         .padding(18)
         .background(panel)
@@ -206,9 +204,7 @@ struct BPChartView: View {
 
     private func metricTile(title: String, value: String, accent: Color) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Circle()
-                .fill(accent)
-                .frame(width: 10, height: 10)
+            Circle().fill(accent).frame(width: 10, height: 10)
             Text(title)
                 .font(.caption)
                 .foregroundStyle(textSecondary)
@@ -221,24 +217,6 @@ struct BPChartView: View {
         .background(Color(red: 0.10, green: 0.11, blue: 0.13))
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(line, lineWidth: 1))
-    }
-
-    private func analysisRow(title: String, value: String) -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(textPrimary)
-                Text(value)
-                    .font(.caption)
-                    .foregroundStyle(textSecondary)
-            }
-            Spacer()
-        }
-        .padding(14)
-        .background(Color(red: 0.10, green: 0.11, blue: 0.13))
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(line, lineWidth: 1))
     }
 
     private func capsule(_ text: String, color: Color) -> some View {
@@ -269,6 +247,6 @@ struct BPChartView: View {
 struct ChartPoint: Identifiable {
     let id = UUID()
     let date: Date
-    let systolic: Int
-    let diastolic: Int
+    let value: Int
+    let series: String
 }

@@ -14,13 +14,13 @@ struct InstructionView: View {
     private let yellow = Color(red: 0.87, green: 0.75, blue: 0.44)
     private let red = Color(red: 0.93, green: 0.47, blue: 0.48)
     private let blue = Color(red: 0.49, green: 0.72, blue: 0.95)
-
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 LinearGradient(colors: [bgTop, bgMid, bgBottom], startPoint: .top, endPoint: .bottom)
                     .ignoresSafeArea()
-
+                
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 18) {
                         headerBlock
@@ -36,56 +36,37 @@ struct InstructionView: View {
             .toolbar(.hidden, for: .navigationBar)
         }
     }
-
+    
     private var headerBlock: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Как пользоваться")
-                .font(.caption)
-                .foregroundStyle(textSecondary)
-
             Text("Инструкция")
                 .font(.system(size: 37, weight: .heavy))
                 .foregroundStyle(textPrimary)
                 .tracking(-0.8)
                 .fixedSize(horizontal: false, vertical: true)
-
-            Text("Короткие подсказки по измерению давления, цветовым зонам и случаям, когда стоит быть особенно внимательной.")
-                .font(.subheadline)
-                .foregroundStyle(textSecondary)
-                .lineSpacing(2)
         }
         .padding(.top, 6)
     }
-
+    
     private var heroCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Быстрый старт")
-                        .font(.caption)
-                        .foregroundStyle(textSecondary)
-
+                    
                     Text("Измеряйте в одном ритме")
                         .font(.system(size: 24, weight: .heavy))
                         .foregroundStyle(textPrimary)
-
+                    
                     Text("Утро около 07:00 · вечер около 20:00 · до внесения данных можно быстро свериться с подсказками.")
                         .font(.subheadline)
                         .foregroundStyle(textSecondary)
                         .lineSpacing(2)
                 }
-
+                
                 Spacer()
-
-                Text("4 шага")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(teal)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(red: 0.07, green: 0.18, blue: 0.17))
-                    .clipShape(Capsule())
+                
             }
-
+            
             VStack(spacing: 10) {
                 instructionStep(number: "1", title: "Сядьте спокойно на 5 минут", text: "Измеряйте после короткого отдыха, без спешки, разговора и физической нагрузки.")
                 instructionStep(number: "2", title: "Держите руку на уровне сердца", text: "Манжета должна быть надета правильно, а положение тела — стабильным и удобным.")
@@ -101,7 +82,7 @@ struct InstructionView: View {
         .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).stroke(line, lineWidth: 1))
         .shadow(color: .black.opacity(0.35), radius: 24, x: 0, y: 16)
     }
-
+    
     private var zonesSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -109,9 +90,9 @@ struct InstructionView: View {
                     .font(.system(size: 19, weight: .heavy))
                     .foregroundStyle(textPrimary)
                 Spacer()
-                statusTag("Быстрая оценка", background: Color(red: 0.07, green: 0.18, blue: 0.14), foreground: green)
+                
             }
-
+            
             VStack(spacing: 10) {
                 zoneCard(color: green, title: "Норма", subtitle: "Ниже 130 / 80", tagText: "Спокойно", tagBackground: Color(red: 0.07, green: 0.18, blue: 0.14), tagForeground: green)
                 zoneCard(color: yellow, title: "Гипертония 1", subtitle: "130–159 или 80–99", tagText: "Контроль", tagBackground: Color(red: 0.16, green: 0.13, blue: 0.08), tagForeground: yellow)
@@ -124,7 +105,7 @@ struct InstructionView: View {
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(line, lineWidth: 1))
     }
-
+    
     private var attentionSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
@@ -132,9 +113,9 @@ struct InstructionView: View {
                     .font(.system(size: 19, weight: .heavy))
                     .foregroundStyle(textPrimary)
                 Spacer()
-                statusTag("Важно", background: Color(red: 0.20, green: 0.09, blue: 0.10), foreground: red)
+                
             }
-
+            
             VStack(spacing: 10) {
                 attentionRow(title: "Несколько высоких дней подряд", subtitle: "Повторяющиеся значения выше цели", value: "Проверьте сводку и график")
                 attentionRow(title: "Резкий скачок давления", subtitle: "Особенно при плохом самочувствии", value: "Не игнорируйте симптомы")
@@ -146,28 +127,30 @@ struct InstructionView: View {
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(line, lineWidth: 1))
     }
-
+    
     private func instructionStep(number: String, title: String, text: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle()
                     .fill(Color(red: 0.08, green: 0.19, blue: 0.19))
                     .frame(width: 34, height: 34)
+                
                 Text(number)
                     .font(.caption.weight(.heavy))
                     .foregroundStyle(teal)
             }
-
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline.weight(.heavy))
                     .foregroundStyle(textPrimary)
+                
                 Text(text)
                     .font(.caption)
                     .foregroundStyle(textSecondary)
                     .lineSpacing(2)
             }
-
+            
             Spacer(minLength: 0)
         }
         .padding(14)
@@ -175,7 +158,7 @@ struct InstructionView: View {
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(line, lineWidth: 1))
     }
-
+    
     private func zoneCard(color: Color, title: String, subtitle: String, tagText: String, tagBackground: Color, tagForeground: Color) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -183,18 +166,20 @@ struct InstructionView: View {
                     Circle()
                         .fill(color)
                         .frame(width: 10, height: 10)
+                    
                     Text(title)
                         .font(.subheadline.weight(.bold))
                         .foregroundStyle(textPrimary)
                 }
+                
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(textSecondary)
                     .padding(.leading, 20)
             }
-
+            
             Spacer()
-
+            
             statusTag(tagText, background: tagBackground, foreground: tagForeground)
         }
         .padding(14)
@@ -202,20 +187,21 @@ struct InstructionView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(line, lineWidth: 1))
     }
-
+    
     private func attentionRow(title: String, subtitle: String, value: String) -> some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(textPrimary)
+                
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(textSecondary)
             }
-
+            
             Spacer()
-
+            
             Text(value)
                 .font(.subheadline.weight(.heavy))
                 .foregroundStyle(textPrimary)
@@ -227,7 +213,7 @@ struct InstructionView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(line, lineWidth: 1))
     }
-
+    
     private func statusTag(_ text: String, background: Color, foreground: Color) -> some View {
         Text(text)
             .font(.caption.weight(.bold))

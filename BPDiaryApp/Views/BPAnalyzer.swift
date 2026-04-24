@@ -8,11 +8,11 @@ enum BPAnalyzer {
             return .hypotension
         }
 
-        if systolic >= 160 || diastolic >= 100 {
+        if systolic >= 160 || diastolic > 100 {
             return .hypertension2
         }
 
-        if systolic >= 130 || diastolic >= 80 {
+        if systolic >= 130 || diastolic > 80 {
             return .hypertension1
         }
 

@@ -32,7 +32,6 @@ struct EntryEditorView: View {
         ZStack {
             LinearGradient(colors: [bgTop, bgMid, bgBottom], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
-
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 18) {
                     topBar
@@ -64,7 +63,6 @@ struct EntryEditorView: View {
         HStack {
             Button { dismiss() } label: { smallIconButton("←") }
             Spacer()
-            smallIconButton("⋯")
         }
     }
 
@@ -86,10 +84,6 @@ struct EntryEditorView: View {
                 .font(.system(size: 31, weight: .heavy))
                 .foregroundStyle(textPrimary)
                 .tracking(-0.6)
-            Text("Экран для записи утреннего и вечернего давления, пульса, времени, препарата, самочувствия и комментария.")
-                .font(.subheadline)
-                .foregroundStyle(textSecondary)
-                .lineSpacing(2)
         }
     }
 
@@ -108,13 +102,6 @@ struct EntryEditorView: View {
                         .foregroundStyle(textSecondary)
                 }
                 Spacer()
-                Text(dayBadge)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(teal)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background(Color(red: 0.07, green: 0.18, blue: 0.17))
-                    .clipShape(Capsule())
             }
             HStack(spacing: 12) {
                 statusMiniCard(title: "Утренний статус", status: BPAnalyzer.status(systolic: intValue(morningSystolicText), diastolic: intValue(morningDiastolicText)))
@@ -219,184 +206,172 @@ struct EntryEditorView: View {
         .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(line, lineWidth: 1))
     }
-
     private var detailsSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Дополнительно")
-                .font(.system(size: 19, weight: .heavy))
-                .foregroundStyle(textPrimary)
-
-            fullField(title: "Препарат / доза") {
-                TextField("Например: Телмисартан 40 мг", text: Binding(get: { entry.medicationDose ?? "" }, set: { entry.medicationDose = $0 }))
-                    .font(.headline.weight(.bold))
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Дополнительно")
+                    .font(.system(size: 19, weight: .heavy))
                     .foregroundStyle(textPrimary)
-                    .padding(.horizontal, 12)
-                    .frame(height: 42)
-                    .background(Color(red: 0.06, green: 0.07, blue: 0.09))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color(red: 0.14, green: 0.16, blue: 0.20), lineWidth: 1))
-            }
 
-            fullField(title: "Самочувствие") {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 10)], spacing: 10) {
-                    ForEach(feelings, id: \.self) { feeling in
-                        Button {
-                            selectedFeeling = feeling
-                            entry.wellBeing = feeling
-                        } label: {
-                            Text(feeling)
-                                .font(.caption.weight(.medium))
-                                .foregroundStyle(selectedFeeling == feeling ? teal : Color(red: 0.84, green: 0.86, blue: 0.89))
-                                .frame(maxWidth: .infinity)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 10)
-                                .background(selectedFeeling == feeling ? Color(red: 0.07, green: 0.17, blue: 0.16) : Color(red: 0.06, green: 0.07, blue: 0.09))
-                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(selectedFeeling == feeling ? Color(red: 0.18, green: 0.38, blue: 0.36) : Color(red: 0.14, green: 0.16, blue: 0.20), lineWidth: 1))
+                fullField(title: "Препарат / доза") {
+                    TextField("Например: Телмисартан 40 мг", text: Binding(get: { entry.medicationDose ?? "" }, set: { entry.medicationDose = $0 }))
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(textPrimary)
+                        .padding(.horizontal, 12)
+                        .frame(height: 42)
+                        .background(Color(red: 0.06, green: 0.07, blue: 0.09))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Color(red: 0.14, green: 0.16, blue: 0.20), lineWidth: 1))
+                }
+
+                fullField(title: "Самочувствие") {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 10)], spacing: 10) {
+                        ForEach(feelings, id: \.self) { feeling in
+                            Button {
+                                selectedFeeling = feeling
+                                entry.wellBeing = feeling
+                            } label: {
+                                Text(feeling)
+                                    .font(.caption.weight(.medium))
+                                    .foregroundStyle(selectedFeeling == feeling ? teal : Color(red: 0.84, green: 0.86, blue: 0.89))
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 10)
+                                    .background(selectedFeeling == feeling ? Color(red: 0.07, green: 0.17, blue: 0.16) : Color(red: 0.06, green: 0.07, blue: 0.09))
+                                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(selectedFeeling == feeling ? Color(red: 0.18, green: 0.38, blue: 0.36) : Color(red: 0.14, green: 0.16, blue: 0.20), lineWidth: 1))
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
-            }
 
-            fullField(title: "Комментарий") {
-                TextEditor(text: Binding(get: { entry.comment ?? "" }, set: { entry.comment = $0 }))
-                    .font(.body)
-                    .foregroundStyle(textPrimary)
-                    .scrollContentBackground(.hidden)
-                    .frame(minHeight: 90)
-                    .padding(8)
-                    .background(Color(red: 0.06, green: 0.07, blue: 0.09))
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color(red: 0.14, green: 0.16, blue: 0.20), lineWidth: 1))
-            }
-
-            HStack(spacing: 12) {
-                Button { dismiss() } label: {
-                    Text("Отмена")
-                        .font(.headline.weight(.heavy))
-                        .foregroundStyle(Color(red: 0.84, green: 0.86, blue: 0.89))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(Color(red: 0.09, green: 0.10, blue: 0.12))
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(line, lineWidth: 1))
+                fullField(title: "Комментарий") {
+                    TextEditor(text: Binding(get: { entry.comment ?? "" }, set: { entry.comment = $0 }))
+                        .font(.body)
+                        .foregroundStyle(textPrimary)
+                        .scrollContentBackground(.hidden)
+                        .frame(minHeight: 90)
+                        .padding(8)
+                        .background(Color(red: 0.06, green: 0.07, blue: 0.09))
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color(red: 0.14, green: 0.16, blue: 0.20), lineWidth: 1))
                 }
-                .buttonStyle(.plain)
 
-                Button { saveEntry() } label: {
-                    Text("Сохранить запись")
-                        .font(.headline.weight(.heavy))
-                        .foregroundStyle(tealDark)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(LinearGradient(colors: [Color(red: 0.40, green: 0.82, blue: 0.79), Color(red: 0.26, green: 0.71, blue: 0.68)], startPoint: .top, endPoint: .bottom))
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                HStack(spacing: 12) {
+                    Button { dismiss() } label: {
+                        Text("Отмена")
+                            .font(.headline.weight(.heavy))
+                            .foregroundStyle(Color(red: 0.84, green: 0.86, blue: 0.89))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(Color(red: 0.09, green: 0.10, blue: 0.12))
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(line, lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+
+                    Button { saveEntry() } label: {
+                        Text("Сохранить запись")
+                            .font(.headline.weight(.heavy))
+                            .foregroundStyle(tealDark)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                            .background(LinearGradient(colors: [Color(red: 0.40, green: 0.82, blue: 0.79), Color(red: 0.26, green: 0.71, blue: 0.68)], startPoint: .top, endPoint: .bottom))
+                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
-
-            Text("По шаблону дневника запись включает утреннее и вечернее давление, пульс, время, препарат / дозу, самочувствие и комментарий.")
-                .font(.caption)
-                .foregroundStyle(textSecondary)
-                .lineSpacing(2)
+            .padding(18)
+            .background(panel)
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(line, lineWidth: 1))
         }
-        .padding(18)
-        .background(panel)
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(line, lineWidth: 1))
-    }
 
-    private func fullField<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(textSecondary)
-            content()
+        private func fullField<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(textSecondary)
+                content()
+            }
+            .padding(12)
+            .background(panel2)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(line, lineWidth: 1))
         }
-        .padding(12)
-        .background(panel2)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(line, lineWidth: 1))
-    }
 
-    private var dayBadge: String {
-        let start = Calendar.current.startOfDay(for: entry.date)
-        let today = Calendar.current.startOfDay(for: Date())
-        let days = Calendar.current.dateComponents([.day], from: today, to: start).day ?? 0
-        return "День \(max(1, days + 1))"
-    }
+        private var morningBadgeText: String {
+            let status = BPAnalyzer.status(systolic: intValue(morningSystolicText), diastolic: intValue(morningDiastolicText))
+            return status == .unknown ? "Статус появится" : status.rawValue
+        }
 
-    private var morningBadgeText: String {
-        let status = BPAnalyzer.status(systolic: intValue(morningSystolicText), diastolic: intValue(morningDiastolicText))
-        return status == .unknown ? "Статус появится" : status.rawValue
-    }
+        private var morningBadgeBackground: Color {
+            let status = BPAnalyzer.status(systolic: intValue(morningSystolicText), diastolic: intValue(morningDiastolicText))
+            return status == .unknown ? Color(red: 0.07, green: 0.18, blue: 0.14) : statusBackground(status)
+        }
 
-    private var morningBadgeBackground: Color {
-        let status = BPAnalyzer.status(systolic: intValue(morningSystolicText), diastolic: intValue(morningDiastolicText))
-        return status == .unknown ? Color(red: 0.07, green: 0.18, blue: 0.14) : statusBackground(status)
-    }
+        private var morningBadgeForeground: Color {
+            let status = BPAnalyzer.status(systolic: intValue(morningSystolicText), diastolic: intValue(morningDiastolicText))
+            return status == .unknown ? green : statusForeground(status)
+        }
 
-    private var morningBadgeForeground: Color {
-        let status = BPAnalyzer.status(systolic: intValue(morningSystolicText), diastolic: intValue(morningDiastolicText))
-        return status == .unknown ? green : statusForeground(status)
-    }
+        private var eveningBadgeText: String {
+            let status = BPAnalyzer.status(systolic: intValue(eveningSystolicText), diastolic: intValue(eveningDiastolicText))
+            return status == .unknown ? "Пока пусто" : status.rawValue
+        }
 
-    private var eveningBadgeText: String {
-        let status = BPAnalyzer.status(systolic: intValue(eveningSystolicText), diastolic: intValue(eveningDiastolicText))
-        return status == .unknown ? "Пока пусто" : status.rawValue
-    }
+        private var eveningBadgeBackground: Color {
+            let status = BPAnalyzer.status(systolic: intValue(eveningSystolicText), diastolic: intValue(eveningDiastolicText))
+            return status == .unknown ? Color(red: 0.16, green: 0.14, blue: 0.09) : statusBackground(status)
+        }
 
-    private var eveningBadgeBackground: Color {
-        let status = BPAnalyzer.status(systolic: intValue(eveningSystolicText), diastolic: intValue(eveningDiastolicText))
-        return status == .unknown ? Color(red: 0.16, green: 0.14, blue: 0.09) : statusBackground(status)
-    }
+        private var eveningBadgeForeground: Color {
+            let status = BPAnalyzer.status(systolic: intValue(eveningSystolicText), diastolic: intValue(eveningDiastolicText))
+            return status == .unknown ? gold : statusForeground(status)
+        }
 
-    private var eveningBadgeForeground: Color {
-        let status = BPAnalyzer.status(systolic: intValue(eveningSystolicText), diastolic: intValue(eveningDiastolicText))
-        return status == .unknown ? gold : statusForeground(status)
-    }
+        private func statusForeground(_ status: BPStatus) -> Color {
+            switch status {
+            case .normal: return green
+            case .hypertension1: return gold
+            case .hypertension2: return Color(red: 0.95, green: 0.45, blue: 0.47)
+            case .hypotension: return Color(red: 0.47, green: 0.72, blue: 0.98)
+            case .unknown: return textSecondary
+            }
+        }
 
-    private func statusForeground(_ status: BPStatus) -> Color {
-        switch status {
-        case .normal: return green
-        case .hypertension1: return gold
-        case .hypertension2: return Color(red: 0.95, green: 0.45, blue: 0.47)
-        case .hypotension: return Color(red: 0.47, green: 0.72, blue: 0.98)
-        case .unknown: return textSecondary
+        private func statusBackground(_ status: BPStatus) -> Color {
+            switch status {
+            case .normal: return Color(red: 0.07, green: 0.18, blue: 0.14)
+            case .hypertension1: return Color(red: 0.16, green: 0.13, blue: 0.08)
+            case .hypertension2: return Color(red: 0.20, green: 0.09, blue: 0.10)
+            case .hypotension: return Color(red: 0.08, green: 0.13, blue: 0.20)
+            case .unknown: return Color(red: 0.13, green: 0.14, blue: 0.16)
+            }
+        }
+
+        private func intValue(_ text: String) -> Int? {
+            Int(text.trimmingCharacters(in: .whitespacesAndNewlines))
+        }
+
+        private func formattedDate(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.locale = Locale(identifier: "ru_RU")
+            formatter.dateFormat = "d MMMM, EEEE"
+            return formatter.string(from: date).capitalized
+        }
+
+        private func saveEntry() {
+            entry.morningSystolic = intValue(morningSystolicText)
+            entry.morningDiastolic = intValue(morningDiastolicText)
+            entry.morningPulse = intValue(morningPulseText)
+            entry.eveningSystolic = intValue(eveningSystolicText)
+            entry.eveningDiastolic = intValue(eveningDiastolicText)
+            entry.eveningPulse = intValue(eveningPulseText)
+            entry.wellBeing = selectedFeeling
+            try? context.save()
+            dismiss()
         }
     }
 
-    private func statusBackground(_ status: BPStatus) -> Color {
-        switch status {
-        case .normal: return Color(red: 0.07, green: 0.18, blue: 0.14)
-        case .hypertension1: return Color(red: 0.16, green: 0.13, blue: 0.08)
-        case .hypertension2: return Color(red: 0.20, green: 0.09, blue: 0.10)
-        case .hypotension: return Color(red: 0.08, green: 0.13, blue: 0.20)
-        case .unknown: return Color(red: 0.13, green: 0.14, blue: 0.16)
-        }
-    }
-
-    private func intValue(_ text: String) -> Int? {
-        Int(text.trimmingCharacters(in: .whitespacesAndNewlines))
-    }
-
-    private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ru_RU")
-        formatter.dateFormat = "d MMMM, EEEE"
-        return formatter.string(from: date).capitalized
-    }
-
-    private func saveEntry() {
-        entry.morningSystolic = intValue(morningSystolicText)
-        entry.morningDiastolic = intValue(morningDiastolicText)
-        entry.morningPulse = intValue(morningPulseText)
-        entry.eveningSystolic = intValue(eveningSystolicText)
-        entry.eveningDiastolic = intValue(eveningDiastolicText)
-        entry.eveningPulse = intValue(eveningPulseText)
-        entry.wellBeing = selectedFeeling
-        try? context.save()
-        dismiss()
-    }
-}

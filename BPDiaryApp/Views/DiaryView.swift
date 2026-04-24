@@ -7,6 +7,7 @@ struct DiaryView: View {
 
     @State private var selectedDate = Calendar.current.startOfDay(for: Date())
     @State private var selectedEntry: DailyBPEntry?
+    
 
     private let bgTop = Color(red: 0.10, green: 0.11, blue: 0.13)
     private let bgMid = Color(red: 0.04, green: 0.05, blue: 0.06)
@@ -53,26 +54,16 @@ struct DiaryView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $selectedEntry) { entry in
                 EntryEditorView(entry: entry)
-            }
-        }
+            }      }
     }
 
     private var heroHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Персональный контроль")
-                .font(.caption)
-                .foregroundStyle(textSecondary)
-
             Text("Дневник контроля давления")
                 .font(.system(size: 37, weight: .heavy))
                 .foregroundStyle(textPrimary)
                 .tracking(-0.8)
                 .fixedSize(horizontal: false, vertical: true)
-
-            Text("Ежедневные утренние и вечерние измерения, статус, сводка и график за 4 недели.")
-                .font(.subheadline)
-                .foregroundStyle(textSecondary)
-                .lineSpacing(2)
         }
         .padding(.top, 6)
     }
@@ -137,7 +128,7 @@ struct DiaryView: View {
         .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).stroke(line, lineWidth: 1))
         .shadow(color: .black.opacity(0.35), radius: 24, x: 0, y: 16)
     }
-
+    
     private func statusMiniCard(title: String, status: BPStatus) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
@@ -233,11 +224,12 @@ struct DiaryView: View {
             } else {
                 VStack(spacing: 10) {
                     ForEach(latestEntries) { entry in
-                        NavigationLink {
-                            EntryEditorView(entry: entry)
+                        Button {
+                            selectedEntry = entry
                         } label: {
                             recentEntryCard(entry)
                         }
+                  
                         .buttonStyle(.plain)
                     }
                 }
@@ -246,36 +238,90 @@ struct DiaryView: View {
     }
 
     private func recentEntryCard(_ entry: DailyBPEntry) -> some View {
-        HStack(spacing: 14) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(AppFormatters.dayMonthYear.string(from: entry.date))
-                    .font(.headline.weight(.bold))
-                    .foregroundStyle(textPrimary)
-                Text(entrySubtitle(entry))
-                    .font(.subheadline)
-                    .foregroundStyle(textSecondary)
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 8) {
-                compactStatus(BPAnalyzer.status(systolic: entry.morningSystolic, diastolic: entry.morningDiastolic), title: "Утро")
-                compactStatus(BPAnalyzer.status(systolic: entry.eveningSystolic, diastolic: entry.eveningDiastolic), title: "Вечер")
-            }
-        }
-        .padding(16)
-        .background(panel)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(line, lineWidth: 1))
-    }
+        let primary = primaryMeasurement(for: entry)
+        let status = primary.status
 
-    private func compactStatus(_ status: BPStatus, title: String) -> some View {
-        Text("\(title): \(status.symbol)")
-            .font(.caption.weight(.bold))
+        return VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 8) {
+                Text(primary.pressureText)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(textPrimary)
+                    .monospacedDigit()
+
+                Spacer(minLength: 8)
+
+                compactStatusBadge(status, title: statusTitle(status))
+            }
+
+            Text(primary.metaText)
+                .font(.caption2)
+                .foregroundStyle(textSecondary)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(panel)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(line, lineWidth: 1)
+        )
+    }
+    
+    private func compactStatusBadge(_ status: BPStatus, title: String) -> some View {
+        Text(title)
+            .font(.caption2.weight(.semibold))
             .foregroundStyle(status == .unknown ? textSecondary : statusForeground(status))
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4)
             .background(statusBackground(status))
             .clipShape(Capsule())
     }
+    
+    
+    private func primaryMeasurement(for entry: DailyBPEntry) -> (pressureText: String, metaText: String, status: BPStatus) {
+        if let systolic = entry.morningSystolic,
+           let diastolic = entry.morningDiastolic {
+            let pulse = entry.morningPulse.map { "Пульс \($0)" } ?? "Пульс —"
+            let time = formattedTime(entry.morningTime)
+            let meta = "Утро • \(time) • \(pulse)"
+            let status = BPAnalyzer.status(systolic: systolic, diastolic: diastolic)
+            return ("\(systolic) / \(diastolic)", meta, status)
+        }
+
+        if let systolic = entry.eveningSystolic,
+           let diastolic = entry.eveningDiastolic {
+            let pulse = entry.eveningPulse.map { "Пульс \($0)" } ?? "Пульс —"
+            let time = formattedTime(entry.eveningTime)
+            let meta = "Вечер • \(time) • \(pulse)"
+            let status = BPAnalyzer.status(systolic: systolic, diastolic: diastolic)
+            return ("\(systolic) / \(diastolic)", meta, status)
+        }
+
+        return ("— / —", "Нет данных измерения", .unknown)
+    }
+
+    private func formattedTime(_ date: Date?) -> String {
+        guard let date else { return "—:—" }
+        return AppFormatters.timeOnly.string(from: date)
+    }
+    
+    private func statusTitle(_ status: BPStatus) -> String {
+        switch status {
+        case .normal:
+            return "Норма"
+        case .hypertension1:
+            return "Выше цели"
+        case .hypertension2:
+            return "Высокое"
+        case .hypotension:
+            return "Низкое"
+        case .unknown:
+            return "Нет данных"
+        }
+    }
+
+    
 
     private func statusForeground(_ status: BPStatus) -> Color {
         switch status {
